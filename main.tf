@@ -3,6 +3,6 @@ resource "null_resource" "test" {
     xyz=timestamp()
   }
   provisioner "local-exec" {
-    command= "command from - ${var.env}"
+    command= " echo command from - Env- ${var.env}"
   }
 }
