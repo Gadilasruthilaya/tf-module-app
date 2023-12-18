@@ -1,4 +1,4 @@
-resource "aws_instance" "test" {
+resource "null_resource" "test" {
   provisioner "local-exec" {
     command= "command from - ${var.env}"
   }
