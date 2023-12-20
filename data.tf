@@ -4,3 +4,7 @@ data "aws_ami" "example" {
   owners           = ["973714476881"]
 
 }
+
+provider "aws" {
+  region = "us-east-1"
+}
