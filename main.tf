@@ -1,3 +1,6 @@
+provider "aws" {
+  region = "us-east-1"
+}
 # policy
 
 resource "aws_iam_policy" "policy" {

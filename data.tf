@@ -5,6 +5,3 @@ data "aws_ami" "example" {
 
 }
 
-provider "aws" {
-  region = "us-east-1"
-}
