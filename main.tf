@@ -104,7 +104,7 @@ resource "aws_instance" "instance" {
 
 resource "aws_route53_record" "dns" {
   zone_id = "Z02630002CU3WENE8SD4L"
-  name    = "${var.componenet}-dev"
+  name    = "${var.component}-dev"
   type    = "A"
   ttl     = 30
   records = [aws_instance.instance.private_ip]
