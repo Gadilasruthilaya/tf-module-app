@@ -95,9 +95,9 @@ resource "aws_instance" "instance" {
 
 
 
-  tags = {
+  tags = merge({
     Name = "${var.component}-${var.env}"
-  }
+  }, var.tags)
 
 }
 
