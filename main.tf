@@ -168,6 +168,6 @@ resource "aws_instance" "instance" {
 
 
 
-  tags = var.component
+  tags = "test"
 
 }
