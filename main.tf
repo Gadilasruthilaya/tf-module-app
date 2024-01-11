@@ -1,59 +1,5 @@
 
-# policy
 
-#resource "aws_iam_policy" "policy" {
-#  name        = "${var.component}-${var.env}-ssm-pm-policy"
-#  path        = "/"
-#  description = "${var.component}-${var.env}-ssm-pm-policy"
-#
-#  policy = jsonencode({
-#    "Version": "2012-10-17",
-#    "Statement": [
-#      {
-#        "Sid": "VisualEditor0",
-#        "Effect": "Allow",
-#        "Action": [
-#          "ssm:GetParameterHistory",
-#          "ssm:DescribeDocumentParameters",
-#          "ssm:GetParametersByPath",
-#          "ssm:GetParameters",
-#          "ssm:GetParameter"
-#        ],
-#        "Resource": "arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*"
-#      }
-#    ]
-#  })
-#}
-#
-##role
-#
-#resource "aws_iam_role" "role" {
-#  name = "${var.component}-${var.env}-ssm-pm-policy"
-#
-#  assume_role_policy = jsonencode({
-#    Version = "2012-10-17"
-#    Statement = [
-#      {
-#        Action = "sts:AssumeRole"
-#        Effect = "Allow"
-#        Sid    = ""
-#        Principal = {
-#          Service = "ec2.amazonaws.com"
-#        }
-#      },
-#    ]
-#  })
-#
-#}
-#resource "aws_iam_instance_profile" "instance_profile" {
-#  name = "${var.component}-${var.env}-ec2-role"
-#  role = aws_iam_role.role.name
-#}
-#
-#resource "aws_iam_role_policy_attachment" "policy-attach" {
-#  role       = aws_iam_role.role.name
-#  policy_arn = aws_iam_policy.policy.arn
-#}
 #
 #
 ##security group
@@ -133,18 +79,70 @@
 #}
 
 
-resource "aws_security_group" "test" {
-  name        = "test-sg"
-  description = "test-sg"
+#resource "aws_security_group" "test" {
+#  name        = "test-sg"
+#  description = "test-sg"
+#  vpc_id = var.vpc_id
+#
+#
+#  ingress {
+#    description = "ssh"
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
+#    cidr_blocks = ["0.0.0.0/0"]
+#
+#  }
+#
+#  egress {
+#    from_port        = 0
+#    to_port          = 0
+#    protocol         = "-1"
+#    cidr_blocks      = ["0.0.0.0/0"]
+#    ipv6_cidr_blocks = ["::/0"]
+#  }
+#
+#  tags = {
+#    Name = "test-sg"
+#  }
+#}
+#resource "aws_instance" "instance" {
+#  ami                    = data.aws_ami.example.id
+#  instance_type          = "t3.micro"
+#  vpc_security_group_ids = [aws_security_group.test.id]
+#  subnet_id = var.subnet_id
+#
+#
+#
+#  tags ={
+#    Name = "${var.component}"
+#  }
+#
+#}
+
+# app module code
+
+resource "aws_security_group" "main" {
+  name        = "${var.component}-${var.env}-sg"
+  description = "${var.component}-${var.env}-sg"
   vpc_id = var.vpc_id
 
 
+
   ingress {
-    description = "ssh"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+
+    from_port   = var.app_port
+    to_port     = var.app_port
+    protocol    = "tcp"
+    cidr_blocks = var.sg_subnet_cidr
+
+  }
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = var.allow_ssh_cidr
 
   }
 
@@ -153,23 +151,60 @@ resource "aws_security_group" "test" {
     to_port          = 0
     protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+
   }
 
-  tags = {
-    Name = "test-sg"
+  tags =  merge({
+    Name = "${var.component}-${var.env}"
+  }, var.tags)
+}
+
+resource "aws_launch_template" "main" {
+  name = "${var.component}-${var.env}-launch-template"
+
+
+
+    iam_instance_profile                 = [aws_iam_instance_profile.instance_profile.id]
+    image_id                             = data.aws_ami.main.id
+    instance_initiated_shutdown_behavior = "terminate"
+    instance_type                        = var.instance_type
+    vpc_security_group_ids               = [aws_security_group.main.id]
+    tag_specifications {
+      resource_type = "instance"
+
+      tags = merge({
+        Name = "${var.component}-${var.env}", monitor = "true"
+      }, var.tags)
+    }
+    user_data = base64decode("${path.module}/userdata.sh", {
+      env       = var.env
+      component = var.component
+    })
+
+  block_device_mappings {
+    device_name = "/dev/sdf"
+
+    ebs {
+      volume_size = 10
+      encrypted  = true
+      kms_key_id = var.kms_id
+    }
+  }
+
+
+  }
+
+
+resource "aws_autoscaling_group" "main" {
+  vpc_zone_identifier = var.subnets
+  desired_capacity   = var.desired_capacity
+  max_size           = var.max_size
+  min_size           = var.min_size
+
+  launch_template {
+    id      = aws_launch_template.main.id
+    version = "$Latest"
   }
 }
-resource "aws_instance" "instance" {
-  ami                    = data.aws_ami.example.id
-  instance_type          = "t3.micro"
-  vpc_security_group_ids = [aws_security_group.test.id]
-  subnet_id = var.subnet_id
 
 
-
-  tags ={
-    Name = "${var.component}"
-  }
-
-}
