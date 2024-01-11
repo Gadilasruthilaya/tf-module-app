@@ -164,7 +164,9 @@ resource "aws_launch_template" "main" {
 
 
 
-    iam_instance_profile                 = [aws_iam_instance_profile.instance_profile.id]
+    iam_instance_profile {
+      name = aws_iam_instance_profile.instance_profile.name
+    }
     image_id                             = data.aws_ami.main.id
     instance_initiated_shutdown_behavior = "terminate"
     instance_type                        = var.instance_type
@@ -176,10 +178,10 @@ resource "aws_launch_template" "main" {
         Name = "${var.component}-${var.env}", monitor = "true"
       }, var.tags)
     }
-    user_data = base64decode("${path.module}/userdata.sh", {
+    user_data = base64decode(templatefile("${path.module}/userdata.sh", {
       env       = var.env
       component = var.component
-    })
+    }))
 
   block_device_mappings {
     device_name = "/dev/sda1"
