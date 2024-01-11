@@ -175,8 +175,10 @@ resource "aws_lb_listener_rule" "static" {
   }
 
   condition {
-    field  = "path-pattern"
-    values = ["${var.component}-${var.env}.devopspractice.store"]
+    host_header {
+      values = ["${var.component}-${var.env}.devopspractice.store"]
+    }
+
   }
 }
 resource "aws_launch_template" "main" {
