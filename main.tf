@@ -158,7 +158,27 @@ resource "aws_security_group" "main" {
     Name = "${var.component}-${var.env}"
   }, var.tags)
 }
+resource "aws_lb_target_group" "main" {
+  name     = "${var.component}-${var.env}-lb-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = var.vpc_id
+}
 
+resource "aws_lb_listener_rule" "static" {
+  listener_arn = var.listener_arn
+  priority     = var.priority
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.main.arn
+  }
+
+  condition {
+    field  = "path-pattern"
+    values = ["${var.component}-${var.env}.devopspractice.store"]
+  }
+}
 resource "aws_launch_template" "main" {
   name = "${var.component}-${var.env}-launch-template"
 
@@ -196,17 +216,36 @@ resource "aws_launch_template" "main" {
 
   }
 
+##dns record
+#
+resource "aws_route53_record" "dns" {
+  zone_id = "Z02630002CU3WENE8SD4L"
+  name    = "${var.component}-${var.env}"
+  type    = "CNAME"
+  ttl     = 30
+  records = [var.lb_dns_name]
+}
+
 
 resource "aws_autoscaling_group" "main" {
   vpc_zone_identifier = var.subnets
   desired_capacity   = var.desired_capacity
   max_size           = var.max_size
   min_size           = var.min_size
+  target_group_arns  = aws_lb_target_group.main.arn
 
   launch_template {
     id      = aws_launch_template.main.id
     version = "$Latest"
   }
 }
+
+  # Other parameters
+
+
+
+
+
+
 
 

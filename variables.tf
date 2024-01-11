@@ -12,3 +12,7 @@ variable "max_size" {}
 variable "min_size" {}
 variable "instance_type" {}
 variable "allow_ssh_cidr" {}
+
+variable "lb_dns_name" {}
+variable "listener_arn" {}
+variable "priority" {}
