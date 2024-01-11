@@ -1,4 +1,4 @@
- policy
+ #policy
 
 resource "aws_iam_policy" "policy" {
   name        = "${var.component}-${var.env}-ssm-pm-policy"
