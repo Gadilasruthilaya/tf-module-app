@@ -22,7 +22,7 @@ resource "aws_iam_policy" "policy" {
         "Resource": concat(
           ["arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*",
           var.kms_key_arn]
-          , var.extra_param_access}
+          , var.extra_param_access)
     ]
   })
 }
