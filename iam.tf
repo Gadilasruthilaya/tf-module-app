@@ -19,9 +19,10 @@ resource "aws_iam_policy" "policy" {
           "ssm:GetParameter",
           "kms:Decrypt"
         ],
-        "Resource": concat("arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*"
-
-          , var.kms_key_arn)}
+        "Resource": concat(
+          ["arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*",
+          var.kms_key_arn]
+          , var.extra_param_access}
     ]
   })
 }
