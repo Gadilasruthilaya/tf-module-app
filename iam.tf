@@ -9,9 +9,9 @@ resource "aws_iam_policy" "policy" {
     "Version": "2012-10-17",
     "Statement": [
       {
-        "Sid": "VisualEditor0",
-        "Effect": "Allow",
-        "Action": [
+        "Sid" : "VisualEditor0",
+        "Effect" : "Allow",
+        "Action" : [
           "ssm:GetParameterHistory",
           "ssm:DescribeDocumentParameters",
           "ssm:GetParametersByPath",
@@ -19,11 +19,12 @@ resource "aws_iam_policy" "policy" {
           "ssm:GetParameter",
           "kms:Decrypt"
         ],
-        "Resource": concat(
-          ["arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*",
-          var.kms_key_arn]
-          , var.extra_param_access)
-    ]
+        "Resource" : concat(
+          [
+            "arn:aws:ssm:us-east-1:190338077320:parameter/roboshop.${var.env}.${var.component}.*",
+            var.kms_key_arn
+          ], var.extra_param_access)
+      } ]
   })
 }
 
